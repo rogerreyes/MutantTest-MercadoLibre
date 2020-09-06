@@ -1,6 +1,8 @@
 # MutantTest-MercadoLibre
 Prueba MercadoLibre challenge de mutantes - Roger Sebastian Reyes Guzmán
 
+[Resumen de la implementación](https://elasticbeanstalk-us-east-1-660785246820.s3.amazonaws.com/Arch.PNG)
+
 ## Consideraciones			
 
 * Se asumió que una matriz de N*N es una matriz cuadrada - en caso contrario el Api produce un error 500
