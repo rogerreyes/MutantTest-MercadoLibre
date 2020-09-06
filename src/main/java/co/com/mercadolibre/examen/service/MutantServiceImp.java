@@ -9,6 +9,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +26,8 @@ public class MutantServiceImp implements MutantService {
 	private DnaRepository dnaRepository;
 
 	private static final Pattern regexPattern = Pattern.compile("(A{4}|T{4}|C{4}|G{4})");
+	
+	Logger logger = LoggerFactory.getLogger(MutantServiceImp.class);
 
 	@Override
 	public boolean isMutant(DnaRequest request) {
@@ -38,6 +42,7 @@ public class MutantServiceImp implements MutantService {
 			// Evaluar mutantes mayor a 3 * 3
 			if (size < 4) {
 				dnaRepository.save(new DnaDocument(Dna256Key, false));
+				logger.info(String.format("Humano Encontrado %s", Dna256Key));
 				return false;
 			}
 
@@ -46,42 +51,44 @@ public class MutantServiceImp implements MutantService {
 				throw new HumanExeption();
 			}
 
-			int diag = (2 * size) - 1;
-			String[][] a = request.getDna().stream().map(str -> str.split("")).toArray(String[][]::new);
-			String[][] AT = new String[size][size];
-			String[][] D1 = new String[diag][size];
-			String[][] D2 = new String[diag][size];
+			int diagonalSize = (2 * size) - 1;
+			String[][] original = request.getDna().stream().map(str -> str.split("")).toArray(String[][]::new);
+			String[][] traspuesta = new String[size][size];
+			String[][] diagonal1 = new String[diagonalSize][size];
+			String[][] diagonal2 = new String[diagonalSize][size];
 
 			for (int i = 0; i < size; i++) {
 				for (int j = 0; j < size; j++) {
-					AT[i][j] = a[j][i];
-					D1[i + j][j] = a[i][j];
-					D2[size - 1 + i - j][j] = a[j][i];
+					traspuesta[i][j] = original[j][i];
+					diagonal1[i + j][j] = original[i][j];
+					diagonal2[size - 1 + i - j][j] = original[j][i];
 				}
 			}
 
-			String joinAT = Arrays.stream(AT).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
-			matches = validateDNA(Dna256Key, joinAT, matches);
+			String joinTraspuesta = Arrays.stream(traspuesta).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
+			matches = validateDNA(Dna256Key, joinTraspuesta, matches);
 			if (matches > 1) {
 				throw new HumanExeption();
 			}
 
-			String joinD1 = Arrays.stream(D1).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
-			matches = validateDNA(Dna256Key, joinD1, matches);
+			String joinDiag1 = Arrays.stream(diagonal1).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
+			matches = validateDNA(Dna256Key, joinDiag1, matches);
 			if (matches > 1) {
 				throw new HumanExeption();
 			}
 
-			String joinD2 = Arrays.stream(D2).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
-			matches = validateDNA(Dna256Key, joinD2, matches);
+			String joinDiag2 = Arrays.stream(diagonal2).map(arr -> String.join("", arr)).collect(Collectors.joining("|"));
+			matches = validateDNA(Dna256Key, joinDiag2, matches);
 			if (matches > 1) {
 				throw new HumanExeption();
 			}
 
 			dnaRepository.save(new DnaDocument(Dna256Key, false)).getId();
+			logger.info(String.format("Humano Encontrado %s", Dna256Key));
 			return false;
 		} catch (HumanExeption humanExeption) {
 			dnaRepository.save(new DnaDocument(Dna256Key, true));
+			logger.info(String.format("Mutante Encontrado %s", Dna256Key));
 			return true;
 		}
 	}
@@ -94,7 +101,7 @@ public class MutantServiceImp implements MutantService {
 		return matches;
 	}
 
-	private static String encryptSHA256(String data) {
+	private String encryptSHA256(String data) {
 		try {
 			MessageDigest digest = MessageDigest.getInstance("SHA-256");
 			byte[] encodedhash = digest.digest(data.getBytes(StandardCharsets.UTF_8));
@@ -104,12 +111,13 @@ public class MutantServiceImp implements MutantService {
 			}
 			return sb.toString();
 		} catch (Exception e) {
+			logger.error("Error generando hash SHA-256 key");
 		}
 		return "UNDEFINED_KEY";
 	}
 
 	@Override
-	public Map<String, Object> getStats() {		
+	public Map<String, Object> getStats() {
 		Integer countMutant = dnaRepository.countIsMutant(true);
 		Integer countHuman = dnaRepository.countIsMutant(false);
 		double ratio = countHuman > 0 ? countMutant / (double) countHuman : 0.0;

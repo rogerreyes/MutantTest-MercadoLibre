@@ -45,7 +45,6 @@ class ExamenMercadolibreApplicationTests {
 				.content(new JSONObject(request).toString()).contentType(MediaType.APPLICATION_JSON);
 		MvcResult result = mockMvc.perform(requestBuilder).andReturn();
 		assertEquals(result.getResponse().getStatus(), 403);
-
 	}
 
 	@Test
@@ -57,7 +56,6 @@ class ExamenMercadolibreApplicationTests {
 				.content(new JSONObject(request).toString()).contentType(MediaType.APPLICATION_JSON);
 		MvcResult result = mockMvc.perform(requestBuilder).andReturn();
 		assertEquals(result.getResponse().getStatus(), 200);
-
 	}
 
 	@Test
@@ -73,7 +71,6 @@ class ExamenMercadolibreApplicationTests {
 
 	@Test
 	void testDnaDocument() {
-
 		String idTest = "m3Rc4D0";
 		DnaDocument dnaDocumnet = new DnaDocument();
 		dnaDocumnet.setId(idTest);
