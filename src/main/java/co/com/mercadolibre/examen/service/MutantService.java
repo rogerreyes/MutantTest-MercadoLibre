@@ -10,4 +10,6 @@ public interface MutantService {
 
 	Map<String, Object> getStats();
 
+	void resetStats();
+
 }

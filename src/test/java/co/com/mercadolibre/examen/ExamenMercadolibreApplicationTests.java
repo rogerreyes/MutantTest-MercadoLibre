@@ -79,5 +79,12 @@ class ExamenMercadolibreApplicationTests {
 		assertEquals(dnaDocumnet.getId(), idTest);
 		assertTrue(dnaDocumnet.isMutant());
 	}
+	
+	@Test
+	void testResetStats() throws Exception {
+		RequestBuilder request = MockMvcRequestBuilders.delete("/stats/reset-all");
+		MvcResult result = mockMvc.perform(request).andReturn();
+		assertEquals(result.getResponse().getStatus(), 204);
+	}
 
 }

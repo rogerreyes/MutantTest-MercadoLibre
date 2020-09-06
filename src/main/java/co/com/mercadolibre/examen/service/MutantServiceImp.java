@@ -25,7 +25,7 @@ public class MutantServiceImp implements MutantService {
 	@Autowired
 	private DnaRepository dnaRepository;
 
-	private static final Pattern regexPattern = Pattern.compile("(A{4}|T{4}|C{4}|G{4})");
+	private static final Pattern regexPattern = Pattern.compile("([Aa]{4}|[Tt]{4}|[Cc]{4}|[Gg]{4})");
 	
 	Logger logger = LoggerFactory.getLogger(MutantServiceImp.class);
 
@@ -124,5 +124,10 @@ public class MutantServiceImp implements MutantService {
 		JSONObject response = new JSONObject().put("count_mutant_dna", countMutant).put("count_human_dna", countHuman)
 				.put("ratio", ratio);
 		return response.toMap();
+	}
+
+	@Override
+	public void resetStats() {
+		dnaRepository.deleteAll();
 	}
 }
